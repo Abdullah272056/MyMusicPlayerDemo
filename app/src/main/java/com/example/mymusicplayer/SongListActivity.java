@@ -151,6 +151,10 @@ public class SongListActivity extends AppCompatActivity {
                     case R.id.themeItemIdId:
                         CustomAdapterForColorChange();
                         break;
+                    case R.id.permissionItemId:
+                            runTimePermission();
+                            drawerLayout.closeDrawers();
+                        break;
                     case R.id.shareItemIdId:
 //                        Intent sendIntent = new Intent();
 //                        sendIntent.setAction(Intent.ACTION_SEND);
