@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-    android:background="#CAEAF8"
+    android:background="#E7F0F4"
     android:gravity="center"
     android:padding="5dp"
     android:orientation="horizontal"
