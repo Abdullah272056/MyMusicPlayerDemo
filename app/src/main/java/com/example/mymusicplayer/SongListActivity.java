@@ -278,6 +278,8 @@ public class SongListActivity extends AppCompatActivity {
             songNameTextView.setText(items[position]);
 
 
+
+
             Uri uri=Uri.parse(mySongs.get(position).toString());
 
             mmr.setDataSource(SongListActivity.this, uri);
