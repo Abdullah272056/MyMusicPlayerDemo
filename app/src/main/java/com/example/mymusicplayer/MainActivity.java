@@ -54,7 +54,7 @@ import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Playable{
 LinearLayout linearLayout;
     ListView listView;
     ArrayList<File> arrayList1;
@@ -188,12 +188,9 @@ LinearLayout linearLayout;
             @Override
             public void onClick(View v) {
                 if (mediaPlayer.isPlaying()){
-                    playImageView.setImageResource(R.drawable.play_ic);
-                    mediaPlayer.pause();
+                    onTrackPause();
                 }else {
-                    //playImageView.setBackgroundResource(R.drawable.pause_ic);
-                    playImageView.setImageResource(R.drawable.pause_ic);
-                    mediaPlayer.start();
+                   onTrackPlay();
                 }
             }
         });
@@ -231,24 +228,7 @@ LinearLayout linearLayout;
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                position=(position+1)%mySongs.size();
-                Uri uri=Uri.parse(mySongs.get(position).toString());
-                mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
-                sName=mySongs.get(position).getName();
-                txtSName.setText(sName);
-                txtSStop.setText(createTime(mediaPlayer.getDuration()));
-                UpdateSeekBar();
-
-                mediaPlayer.start();
-                playImageView.setImageResource(R.drawable.pause_ic);
-                startAnimation(imageView);
-
-                int audioSessionId=mediaPlayer.getAudioSessionId();
-                if (audioSessionId!=-1){
-                    visualizer.setAudioSessionId(audioSessionId);
-                }
+               onTrackNext();
             }
         });
 
@@ -257,28 +237,7 @@ LinearLayout linearLayout;
         btnPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                position=((position-1)<0)?(mySongs.size()-1):(position-1);
-                Uri uri=Uri.parse(mySongs.get(position).toString());
-                mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
-                sName=mySongs.get(position).getName();
-                txtSName.setText(sName);
-
-
-                txtSStop.setText(createTime(mediaPlayer.getDuration()));
-                UpdateSeekBar();
-
-                mediaPlayer.start();
-                playImageView.setImageResource(R.drawable.pause_ic);
-                startAnimation(imageView);
-
-
-                int audioSessionId=mediaPlayer.getAudioSessionId();
-                if (audioSessionId!=-1){
-                    visualizer.setAudioSessionId(audioSessionId);
-                }
-
+               onTrackPrevious();
 
             }
         });
@@ -363,7 +322,7 @@ LinearLayout linearLayout;
         return bm;
     }
 
-
+    // current song after end next son start
     void runNextSon(){
         final Handler handler2=new Handler();
         final  int delay1=2000;
@@ -449,4 +408,71 @@ LinearLayout linearLayout;
 
 
     }
+
+
+
+    // override Playable class method
+    @Override
+    public void onTrackPrevious() {
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        position=((position-1)<0)?(mySongs.size()-1):(position-1);
+        Uri uri=Uri.parse(mySongs.get(position).toString());
+        mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
+        sName=mySongs.get(position).getName();
+        txtSName.setText(sName);
+
+
+        txtSStop.setText(createTime(mediaPlayer.getDuration()));
+        UpdateSeekBar();
+
+        mediaPlayer.start();
+        playImageView.setImageResource(R.drawable.pause_ic);
+        startAnimation(imageView);
+
+
+        int audioSessionId=mediaPlayer.getAudioSessionId();
+        if (audioSessionId!=-1){
+            visualizer.setAudioSessionId(audioSessionId);
+        }
+
+    }
+
+    @Override
+    public void onTrackPlay() {
+        playImageView.setImageResource(R.drawable.pause_ic);
+        mediaPlayer.start();
+    }
+
+    @Override
+    public void onTrackPause() {
+        playImageView.setImageResource(R.drawable.play_ic);
+        mediaPlayer.pause();
+    }
+
+    @Override
+    public void onTrackNext() {
+        mediaPlayer.stop();
+        mediaPlayer.release();
+        position=(position+1)%mySongs.size();
+        Uri uri=Uri.parse(mySongs.get(position).toString());
+        mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
+        sName=mySongs.get(position).getName();
+        txtSName.setText(sName);
+        txtSStop.setText(createTime(mediaPlayer.getDuration()));
+        UpdateSeekBar();
+
+        mediaPlayer.start();
+        playImageView.setImageResource(R.drawable.pause_ic);
+        startAnimation(imageView);
+
+        int audioSessionId=mediaPlayer.getAudioSessionId();
+        if (audioSessionId!=-1){
+            visualizer.setAudioSessionId(audioSessionId);
+        }
+    }
+
+
+
+
 }

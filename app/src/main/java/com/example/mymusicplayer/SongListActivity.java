@@ -72,7 +72,6 @@ public class SongListActivity extends AppCompatActivity {
     int colorStatus;
     DrawerLayout drawerLayout;
     NavigationView navigationView;
-    RadioButton purpleRadioButton,blackRadioButton,whiteRadioButton,redRadioButton,blueRadioButton,greenRadioButton;
     private List<ThemeNote> themeStatusData;
 
     TextView header;
@@ -651,7 +650,7 @@ public class SongListActivity extends AppCompatActivity {
 
 
 }
-        void texColorChange(){
+  void texColorChange(){
             int[][] states = new int[][] {
                     new int[] { android.R.attr.state_enabled}, // enabled
             };
