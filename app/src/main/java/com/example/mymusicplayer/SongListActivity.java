@@ -28,6 +28,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.LayoutInflater;
@@ -81,6 +82,8 @@ public class SongListActivity extends AppCompatActivity {
              color9,color10,color11,color12,color13,color14,color15,color16;
     Button saveButton ,cancelButton;
     View selectColor;
+
+    List<Track> tracks;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -175,7 +178,6 @@ public class SongListActivity extends AppCompatActivity {
     }
 
     public void runTimePermission(){
-
             Dexter.withContext(SongListActivity.this).withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.RECORD_AUDIO)
                     .withListener(new MultiplePermissionsListener() {
                         @Override
@@ -217,10 +219,14 @@ public class SongListActivity extends AppCompatActivity {
         return arrayList;
     }
     void displaySong(){
+
         final ArrayList<File> mySongs=findSong(Environment.getExternalStorageDirectory());
         items=new String[mySongs.size()];
         if (mySongs.size()>0){
             for (int i=0;i<mySongs.size();i++){
+                //////////////////////////////////////////
+                tracks=new ArrayList<>();
+
                 items[i]=mySongs.get(i).getName().toString().replace(".mp3","").replace(".wav","");
             }
         }

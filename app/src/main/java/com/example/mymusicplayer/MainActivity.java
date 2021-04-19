@@ -9,8 +9,13 @@ import android.Manifest;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,6 +24,7 @@ import android.graphics.PorterDuff;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -37,6 +43,7 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.mymusicplayer.Service.OnClearFromRecentService;
 import com.example.mymusicplayer.theme.ThemeDataBaseHelper;
 import com.example.mymusicplayer.theme.ThemeNote;
 import com.gauravk.audiovisualizer.visualizer.BarVisualizer;
@@ -77,6 +84,12 @@ LinearLayout linearLayout;
 
     Thread updateSeekBar;
    Toolbar toolbar;
+
+
+    NotificationManager notificationManager;
+
+
+    boolean isPlaying=false;
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -128,6 +141,7 @@ LinearLayout linearLayout;
         setColor();
 
         arrayList1=new ArrayList<>();
+
        // runTimePermission();
 
         if (mediaPlayer!=null){
@@ -138,22 +152,33 @@ LinearLayout linearLayout;
         // data receive
         Intent intent=getIntent();
         Bundle bundle=intent.getExtras();
-        mySongs=(ArrayList) bundle.getParcelableArrayList("songs");
+        assert bundle != null;
 
+        mySongs=(ArrayList) bundle.getParcelableArrayList("songs");
         String songName=intent.getStringExtra("songName");
         position=bundle.getInt("pos",0);
         txtSName.setSelected(true);
 
         Uri uri=Uri.parse(mySongs.get(position).toString());
+
+
+
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            createChannel();
+            registerReceiver(broadcastReceiver,new IntentFilter("TRACKS_TRACKS"));
+            startService(new Intent(getBaseContext(), OnClearFromRecentService.class));
+        }
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
+        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
+                R.drawable.pause_ic,position,mySongs.size()-1);
 
         mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
         mediaPlayer.start();
 
 
        UpdateSeekBar();
-        runNextSon();
+       runNextSon();
 
 
 //        //seekMusic set Listener
@@ -217,8 +242,6 @@ LinearLayout linearLayout;
 
 
 
-
-
         int audioSessionId=mediaPlayer.getAudioSessionId();
         if (audioSessionId!=-1){
             visualizer.setAudioSessionId(audioSessionId);
@@ -245,7 +268,39 @@ LinearLayout linearLayout;
 
     }
 
+    private void createChannel(){
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            NotificationChannel channel=new NotificationChannel(CreateNotification.CHANNEL_ID,
+                    "KOD Dev", NotificationManager.IMPORTANCE_LOW);
 
+            notificationManager=getSystemService(NotificationManager.class);
+            if (notificationManager!=null){
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+    }
+   // er vitor ja ja korbo seta hobe
+    BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action=intent.getExtras().getString("actionName");
+            switch (action){
+                case CreateNotification.ACTION_PREVIOUS:
+                    onTrackPrevious();
+                    break;
+                case CreateNotification.ACTION_PLAY:
+                    if (mediaPlayer.isPlaying()){
+                        onTrackPause();
+                    }else {
+                        onTrackPlay();
+                    }
+                    break;
+                case CreateNotification.ACTION_NEXT:
+                    onTrackNext();
+                    break;
+            }
+        }
+    };
 
 
 
@@ -436,16 +491,32 @@ LinearLayout linearLayout;
             visualizer.setAudioSessionId(audioSessionId);
         }
 
+        sName=mySongs.get(position).getName();
+        txtSName.setText(sName);
+        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
+                R.drawable.pause_ic,position,mySongs.size()-1);
     }
 
     @Override
     public void onTrackPlay() {
+//        CreateNotification.createNotification(MainActivity.this,tracks.get(position),
+//                R.drawable.ic_baseline_pause_24,position,mySongs.size()-1);
+        sName=mySongs.get(position).getName();
+        txtSName.setText(sName);
+        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
+                R.drawable.pause_ic,position,mySongs.size()-1);
+
         playImageView.setImageResource(R.drawable.pause_ic);
         mediaPlayer.start();
     }
 
     @Override
     public void onTrackPause() {
+        sName=mySongs.get(position).getName();
+        txtSName.setText(sName);
+        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
+                R.drawable.play_ic,position,mySongs.size()-1);
+
         playImageView.setImageResource(R.drawable.play_ic);
         mediaPlayer.pause();
     }
@@ -470,6 +541,11 @@ LinearLayout linearLayout;
         if (audioSessionId!=-1){
             visualizer.setAudioSessionId(audioSessionId);
         }
+
+        sName=mySongs.get(position).getName();
+        txtSName.setText(sName);
+        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
+                R.drawable.pause_ic,position,mySongs.size()-1);
     }
 
 
