@@ -155,15 +155,11 @@ LinearLayout linearLayout;
         }
 
         // data receive
-        Intent intent=getIntent();
-        Bundle bundle=intent.getExtras();
-
-        if (bundle!=null){
-
+            Intent intent=getIntent();
+            Bundle bundle=intent.getExtras();
             mySongs=(ArrayList) bundle.getParcelableArrayList("songs");
-           // String songName=intent.getStringExtra("songName");
             position=bundle.getInt("pos",0);
-        }
+
 
         txtSName.setSelected(true);
         Uri uri=Uri.parse(mySongs.get(position).toString());
@@ -192,7 +188,6 @@ LinearLayout linearLayout;
 
         // after one second change current time and
         // when user change seekBar progress then get current time and set textView
-
         final Handler handler=new Handler();
         final  int delay=1000;
         handler.postDelayed(new Runnable() {
@@ -237,7 +232,7 @@ LinearLayout linearLayout;
 
 
 
-
+        // bar visualizer
         int audioSessionId=mediaPlayer.getAudioSessionId();
         if (audioSessionId!=-1){
             visualizer.setAudioSessionId(audioSessionId);
@@ -275,7 +270,8 @@ LinearLayout linearLayout;
             }
         }
     }
-   // er vitor ja ja korbo seta hobe
+
+   // er vetor ja ja korbo seta hobe
     BroadcastReceiver broadcastReceiver=new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -297,9 +293,6 @@ LinearLayout linearLayout;
             }
         }
     };
-
-
-
 
 
     // animation create
@@ -326,7 +319,7 @@ LinearLayout linearLayout;
         return time;
     }
 
-
+    //seekbar update with current duration
     void UpdateSeekBar(){
         updateSeekBar=new Thread(){
             @Override
@@ -350,28 +343,7 @@ LinearLayout linearLayout;
         seekMusic.setMaxProgress(mediaPlayer.getDuration());
         updateSeekBar.start();
     }
-    public Bitmap getAlbumart(Long album_id)
-    {
-        Bitmap bm = null;
-        try
-        {
-            final Uri sArtworkUri = Uri
-                    .parse("content://media/external/audio/albumart");
 
-            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
-
-            ParcelFileDescriptor pfd = this.getContentResolver()
-                    .openFileDescriptor(uri, "r");
-
-            if (pfd != null)
-            {
-                FileDescriptor fd = pfd.getFileDescriptor();
-                bm = BitmapFactory.decodeFileDescriptor(fd);
-            }
-        } catch (Exception e) {
-        }
-        return bm;
-    }
 
     // current song after end next son start
     void runNextSon(){
