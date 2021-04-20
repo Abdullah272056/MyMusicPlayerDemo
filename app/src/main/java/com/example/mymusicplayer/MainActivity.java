@@ -111,17 +111,17 @@ LinearLayout linearLayout;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // toolbar
         toolbar=findViewById (R.id.toolbar);
-
         if (toolbar!=null){
             setSupportActionBar(toolbar);
         }
-
         //getSupportActionBar().setTitle("Now Playing");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24);
 
+        // view finding
         linearLayout=findViewById(R.id.linearLayoutId);
         listView=findViewById(R.id.listView);
         btnPlay=findViewById(R.id.playButtonId);
@@ -129,15 +129,20 @@ LinearLayout linearLayout;
         btnPrev=findViewById(R.id.prevButtonId);
         btnFf=findViewById(R.id.FFButtonId);
         btnFr=findViewById(R.id.FRButtonId);
-
         txtSName=findViewById(R.id.songNameTextViewId);
         txtSStart=findViewById(R.id.sonStartTimeTextViewId);
         txtSStop=findViewById(R.id.songStopTextViewId);
         imageView=findViewById(R.id.imageViewId);
         playImageView=findViewById(R.id.playImageViewId);
-
         seekMusic=findViewById(R.id.seekBarId);
         visualizer=findViewById(R.id.blast);
+
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
+            createChannel();
+            registerReceiver(broadcastReceiver,new IntentFilter("TRACKS_TRACKS"));
+            startService(new Intent(getBaseContext(), OnClearFromRecentService.class));
+        }
+        // call setColor method for color set
         setColor();
 
         arrayList1=new ArrayList<>();
@@ -152,30 +157,21 @@ LinearLayout linearLayout;
         // data receive
         Intent intent=getIntent();
         Bundle bundle=intent.getExtras();
-        assert bundle != null;
 
-        mySongs=(ArrayList) bundle.getParcelableArrayList("songs");
-        String songName=intent.getStringExtra("songName");
-        position=bundle.getInt("pos",0);
+        if (bundle!=null){
+
+            mySongs=(ArrayList) bundle.getParcelableArrayList("songs");
+           // String songName=intent.getStringExtra("songName");
+            position=bundle.getInt("pos",0);
+        }
+
         txtSName.setSelected(true);
-
         Uri uri=Uri.parse(mySongs.get(position).toString());
 
-
-
-        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
-            createChannel();
-            registerReceiver(broadcastReceiver,new IntentFilter("TRACKS_TRACKS"));
-            startService(new Intent(getBaseContext(), OnClearFromRecentService.class));
-        }
-        sName=mySongs.get(position).getName();
-        txtSName.setText(sName);
-        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
-                R.drawable.pause_ic,position,mySongs.size()-1);
-
+        // create media player
         mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
-        mediaPlayer.start();
-
+        // call onTrackPlay method
+        onTrackPlay();
 
        UpdateSeekBar();
        runNextSon();
@@ -494,7 +490,7 @@ LinearLayout linearLayout;
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
         CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
-                R.drawable.pause_ic,position,mySongs.size()-1);
+                R.drawable.pause_ic,position,mySongs.size()-1,mySongs);
     }
 
     @Override
@@ -504,7 +500,7 @@ LinearLayout linearLayout;
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
         CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
-                R.drawable.pause_ic,position,mySongs.size()-1);
+                R.drawable.pause_ic,position,mySongs.size()-1,mySongs);
 
         playImageView.setImageResource(R.drawable.pause_ic);
         mediaPlayer.start();
@@ -515,7 +511,7 @@ LinearLayout linearLayout;
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
         CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
-                R.drawable.play_ic,position,mySongs.size()-1);
+                R.drawable.play_ic,position,mySongs.size()-1,mySongs);
 
         playImageView.setImageResource(R.drawable.play_ic);
         mediaPlayer.pause();
@@ -545,7 +541,7 @@ LinearLayout linearLayout;
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
         CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
-                R.drawable.pause_ic,position,mySongs.size()-1);
+                R.drawable.pause_ic,position,mySongs.size()-1,mySongs);
     }
 
 

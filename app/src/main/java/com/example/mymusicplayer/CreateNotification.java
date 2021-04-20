@@ -15,6 +15,9 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.example.mymusicplayer.Service.NotificationActionService;
 
+import java.io.File;
+import java.util.ArrayList;
+
 
 public class CreateNotification {
     public static final String CHANNEL_ID="channel1";
@@ -22,7 +25,7 @@ public class CreateNotification {
     public static final String ACTION_PLAY="actionplay";
     public static final String ACTION_NEXT="actionnext";
     public static Notification notification;
-    public static void createNotification(Context context, Track track, int playButton, int pos, int size ){
+    public static void createNotification(Context context, Track track, int playButton, int position, int size, ArrayList<File> mySongs ){
 
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
             NotificationManagerCompat notificationManagerCompat= NotificationManagerCompat.from(context);
@@ -31,18 +34,6 @@ public class CreateNotification {
 
             PendingIntent pendingIntentPrevious;
             int drwPrevious;
-//            if (pos==0){
-//                pendingIntentPrevious=null;
-//                drwPrevious=0;
-//            }
-//            else {
-//                Intent intentPrevious=new Intent(context, NotificationActionService.class).setAction(ACTION_PREVIOUS);
-//                pendingIntentPrevious=PendingIntent.getBroadcast(context,0,intentPrevious,
-//                        PendingIntent.FLAG_UPDATE_CURRENT);
-//                // icon change
-//                drwPrevious=R.drawable.ic_baseline_skip_previous_24;
-//            }
-
 
             // Action previous
             Intent intentPrevious=new Intent(context, NotificationActionService.class).setAction(ACTION_PREVIOUS);
@@ -51,26 +42,13 @@ public class CreateNotification {
             // icon change
             drwPrevious=R.drawable.ic_baseline_skip_previous_24;
 
-
-    // Action Play
+            // Action Play
             Intent intentPlay=new Intent(context, NotificationActionService.class).setAction(ACTION_PLAY);
            PendingIntent pendingIntentPlay=PendingIntent.getBroadcast(context,0,
                    intentPlay, PendingIntent.FLAG_UPDATE_CURRENT);
 
-
             PendingIntent pendingIntentNext;
             int drwNext;
-//            if (pos==size){
-//                pendingIntentNext=null;
-//                drwNext=0;
-//            }
-//            else {
-//              Intent intentNext=new Intent(context, NotificationActionService.class).setAction(ACTION_NEXT);
-////                pendingIntentNext=PendingIntent.getBroadcast(context,0,intentNext,
-////                        PendingIntent.FLAG_UPDATE_CURRENT);
-////                // icon change
-////                drwNext=R.drawable.ic_baseline_skip_next_24;
-//            }
 
             // Action Next
             Intent intentNext=new Intent(context, NotificationActionService.class).setAction(ACTION_NEXT);
@@ -81,6 +59,9 @@ public class CreateNotification {
 
                 // notification to activity
                 Intent intent=new Intent(context,MainActivity.class);
+                intent.putExtra("songs",mySongs);
+               // intent.putExtra("songName",songName);
+                intent.putExtra("pos",position);
                 PendingIntent resultPendingIntent= PendingIntent.getActivity(context,1,intent,PendingIntent.FLAG_UPDATE_CURRENT);
 
             notification=new NotificationCompat.Builder(context,CHANNEL_ID).

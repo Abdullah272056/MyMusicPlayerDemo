@@ -31,6 +31,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -84,6 +85,7 @@ public class SongListActivity extends AppCompatActivity {
     View selectColor;
 
     List<Track> tracks;
+    String duration1=null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -243,11 +245,15 @@ public class SongListActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            try {
                 String songName= (String) listView.getItemAtPosition(position);
                 startActivity(new Intent(SongListActivity.this,MainActivity.class)
                         .putExtra("songs",mySongs)
                         .putExtra("songName",songName)
                         .putExtra("pos",position));
+            }catch (Exception e){}
+
+
             }
         });
     }
@@ -273,9 +279,11 @@ public class SongListActivity extends AppCompatActivity {
             return 0;
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.P)
+
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+
+
             View myView=getLayoutInflater().inflate(R.layout.list_item,null);
             TextView songNameTextView=myView.findViewById(R.id.songNameTextViewId);
             TextView durationTextView=myView.findViewById(R.id.songDurationTextViewId);
@@ -284,27 +292,31 @@ public class SongListActivity extends AppCompatActivity {
             songNameTextView.setText(items[position]);
 
 
+            try {
+                Uri uri=Uri.parse(mySongs.get(position).toString());
+
+                mmr.setDataSource(SongListActivity.this, uri);
+                String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+                String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                String image =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_IMAGE);
+
+                Bitmap bm = StringToBitMap(image);
+                if (bm!=null){
+                    img.setImageBitmap(bm);
+                    //MyPhoto is image control
+                }
 
 
-            Uri uri=Uri.parse(mySongs.get(position).toString());
 
-            mmr.setDataSource(SongListActivity.this, uri);
-            String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-             mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            String image =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_IMAGE);
+                int millSecond = Integer.parseInt(duration);
+                durationTextView.setSelected(true);
+                durationTextView.setText(title +"\t"+createTime(millSecond));
 
-           Bitmap bm = StringToBitMap(image);
-            if (bm!=null){
-                img.setImageBitmap(bm);
-            //MyPhoto is image control
+            }catch (Exception e){
+                Log.e("esr",String.valueOf(e));
             }
 
-
-
-            int millSecond = Integer.parseInt(duration);
-            durationTextView.setSelected(true);
-            durationTextView.setText(title +"\t"+createTime(millSecond));
 
             return myView ;
         }
