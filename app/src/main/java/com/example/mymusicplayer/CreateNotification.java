@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.support.v4.media.session.MediaSessionCompat;
 
@@ -25,7 +27,7 @@ public class CreateNotification {
     public static final String ACTION_PLAY="actionplay";
     public static final String ACTION_NEXT="actionnext";
     public static Notification notification;
-    public static void createNotification(Context context, Track track, int playButton, int position, int size, ArrayList<File> mySongs ){
+    public static void createNotification(Context context, Track track, int playButton, int position, int size, ArrayList<File> mySongs){
 
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
             NotificationManagerCompat notificationManagerCompat= NotificationManagerCompat.from(context);
@@ -60,9 +62,12 @@ public class CreateNotification {
                 // notification to activity
                 Intent intent=new Intent(context,MainActivity.class);
                 intent.putExtra("songs",mySongs);
-               // intent.putExtra("songName",songName);
+               // intent.putExtra("currentDuration",MainActivity.mediaPlayer.getCurrentPosition());
                 intent.putExtra("pos",position);
+
                 PendingIntent resultPendingIntent= PendingIntent.getActivity(context,1,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+
+
 
             notification=new NotificationCompat.Builder(context,CHANNEL_ID).
                     setSmallIcon(R.drawable.ic_baseline_music_note_24)
@@ -76,7 +81,7 @@ public class CreateNotification {
                     .addAction(drwNext,"next",pendingIntentNext)
                     .setContentIntent(resultPendingIntent)
                     .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
-                            .setShowActionsInCompactView(0,1,2)
+                            .setShowActionsInCompactView(0,1,2,3)
                             .setMediaSession(mediaSessionCompat.getSessionToken()))
                     .setPriority(NotificationCompat.PRIORITY_LOW)
                     .build();

@@ -63,9 +63,12 @@ import java.util.List;
 
 public class SongListActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99 ;
-    String[]items;
+    //String[]items;
+
+    List<String> items;
     ListView listView;
     ArrayList<File> arrayList1;
+    ArrayList<File> arrayList2;
 
     Toolbar toolbar;
     ThemeDataBaseHelper themeDataBaseHelper;
@@ -100,6 +103,7 @@ public class SongListActivity extends AppCompatActivity {
 
         listView=findViewById(R.id.listView);
         arrayList1=new ArrayList<>();
+        arrayList2=new ArrayList<>();
 
         runTimePermission();
         navigationView=findViewById (R.id.myNavigationViewId);
@@ -208,32 +212,42 @@ public class SongListActivity extends AppCompatActivity {
         ArrayList<File>  arrayList=new ArrayList<>();
         File[] files=file.listFiles();
         for (File singleFile:files){
-            if (singleFile.isDirectory() && !singleFile.isHidden()){
-                arrayList.addAll(findSong(singleFile));
-            }else {
-                if (singleFile.getName().endsWith(".mp3")  || singleFile.getName().endsWith(".wav")){
-                    arrayList.add(singleFile);
+            if (!singleFile.getName().startsWith(".")){
+                if (singleFile.isDirectory() && !singleFile.isHidden()){
+
+                    arrayList.addAll(findSong(singleFile));
+                }else {
+                    if (singleFile.getName().endsWith(".mp3")  || singleFile.getName().endsWith(".wav")){
+                        arrayList.add(singleFile);
+                    }
                 }
             }
+
         }
 
         arrayList1.addAll(arrayList);
         return arrayList;
     }
+
+
     void displaySong(){
 
         final ArrayList<File> mySongs=findSong(Environment.getExternalStorageDirectory());
-        items=new String[mySongs.size()];
+        //items=new String[mySongs.size()];
+        items=new ArrayList<>();
+
         if (mySongs.size()>0){
             for (int i=0;i<mySongs.size();i++){
                 //////////////////////////////////////////
                 tracks=new ArrayList<>();
-
-                items[i]=mySongs.get(i).getName().toString().replace(".mp3","").replace(".wav","");
+                if (!mySongs.get(i).getName().startsWith(".")){
+                    items.add(mySongs.get(i).getName().toString().replace(".mp3","").replace(".wav",""));
+                }
+                continue;
             }
         }
 
-        if (items.length>0){
+        if (items.size()>0){
             SongListActivity.CustomAdapter customAdapter=new SongListActivity.CustomAdapter();
             listView.setAdapter(customAdapter);
         }
@@ -266,7 +280,7 @@ public class SongListActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return items.length;
+            return items.size();
         }
 
         @Override
@@ -289,33 +303,33 @@ public class SongListActivity extends AppCompatActivity {
             TextView durationTextView=myView.findViewById(R.id.songDurationTextViewId);
             ImageView img=myView.findViewById(R.id.img);
             songNameTextView.setSelected(true);
-            songNameTextView.setText(items[position]);
+            songNameTextView.setText(items.get(position));
 
 
-            try {
-                Uri uri=Uri.parse(mySongs.get(position).toString());
-
-                mmr.setDataSource(SongListActivity.this, uri);
-                String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-                String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-                String image =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_IMAGE);
-
-                Bitmap bm = StringToBitMap(image);
-                if (bm!=null){
-                    img.setImageBitmap(bm);
-                    //MyPhoto is image control
-                }
-
-
-
-                int millSecond = Integer.parseInt(duration);
-                durationTextView.setSelected(true);
-                durationTextView.setText(title +"\t"+createTime(millSecond));
-
-            }catch (Exception e){
-                Log.e("esr",String.valueOf(e));
-            }
+//            try {
+//                Uri uri=Uri.parse(mySongs.get(position).toString());
+//
+//                mmr.setDataSource(SongListActivity.this, uri);
+//                String duration = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+//                String title =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+//                mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+//                String image =  mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_HAS_IMAGE);
+//
+//                Bitmap bm = StringToBitMap(image);
+//                if (bm!=null){
+//                    img.setImageBitmap(bm);
+//                    //MyPhoto is image control
+//                }
+//
+//
+//
+//                int millSecond = Integer.parseInt(duration);
+//                durationTextView.setSelected(true);
+//                durationTextView.setText(title +"\t"+createTime(millSecond));
+//
+//            }catch (Exception e){
+//                Log.e("esr",String.valueOf(e));
+//            }
 
 
             return myView ;

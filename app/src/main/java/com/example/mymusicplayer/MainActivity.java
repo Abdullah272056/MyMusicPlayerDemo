@@ -21,6 +21,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -29,6 +30,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,8 +63,8 @@ import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements Playable{
-LinearLayout linearLayout;
+public class MainActivity extends AppCompatActivity implements Playable , AudioManager.OnAudioFocusChangeListener{
+    LinearLayout linearLayout;
     ListView listView;
     ArrayList<File> arrayList1;
 
@@ -77,8 +79,9 @@ LinearLayout linearLayout;
     ImageView imageView,playImageView;
 
     String sName;
+    int cduration;
     public static final String EXTRA_NAME="song_name";
-    static MediaPlayer mediaPlayer;
+    public  static  MediaPlayer mediaPlayer;
     int position;
     ArrayList<File> mySongs;
 
@@ -90,6 +93,8 @@ LinearLayout linearLayout;
 
 
     boolean isPlaying=false;
+
+    AudioManager am = null;
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -137,6 +142,7 @@ LinearLayout linearLayout;
         seekMusic=findViewById(R.id.seekBarId);
         visualizer=findViewById(R.id.blast);
 
+
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
             createChannel();
             registerReceiver(broadcastReceiver,new IntentFilter("TRACKS_TRACKS"));
@@ -159,6 +165,8 @@ LinearLayout linearLayout;
             Bundle bundle=intent.getExtras();
             mySongs=(ArrayList) bundle.getParcelableArrayList("songs");
             position=bundle.getInt("pos",0);
+            cduration=bundle.getInt("currentDuration",0);
+        Log.e("duration",String.valueOf(cduration));
 
 
         txtSName.setSelected(true);
@@ -166,8 +174,11 @@ LinearLayout linearLayout;
 
         // create media player
         mediaPlayer=MediaPlayer.create(getApplicationContext(),uri);
+
+
         // call onTrackPlay method
         onTrackPlay();
+        mediaPlayer.seekTo(cduration);
 
        UpdateSeekBar();
        runNextSon();
@@ -180,6 +191,8 @@ LinearLayout linearLayout;
 //                mediaPlayer.seekTo(i);
 //            }
 //        });
+
+
 
 
         // time format change and set textView
@@ -229,8 +242,6 @@ LinearLayout linearLayout;
                 }
             }
         });
-
-
 
         // bar visualizer
         int audioSessionId=mediaPlayer.getAudioSessionId();
@@ -467,6 +478,7 @@ LinearLayout linearLayout;
 
     @Override
     public void onTrackPlay() {
+        Log.e("etr","play");
 //        CreateNotification.createNotification(MainActivity.this,tracks.get(position),
 //                R.drawable.ic_baseline_pause_24,position,mySongs.size()-1);
         sName=mySongs.get(position).getName();
@@ -476,10 +488,12 @@ LinearLayout linearLayout;
 
         playImageView.setImageResource(R.drawable.pause_ic);
         mediaPlayer.start();
+
     }
 
     @Override
     public void onTrackPause() {
+        Log.e("etr","pause");
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
         CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
@@ -517,6 +531,19 @@ LinearLayout linearLayout;
     }
 
 
-
-
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)
+        {
+            // Pause
+        }
+        else if(focusChange == AudioManager.AUDIOFOCUS_GAIN)
+        {
+            // Resume
+        }
+        else if(focusChange == AudioManager.AUDIOFOCUS_LOSS)
+        {
+            // Stop or pause depending on your need
+        }
+    }
 }
