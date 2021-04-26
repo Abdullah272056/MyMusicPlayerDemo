@@ -63,12 +63,12 @@ import java.util.List;
 
 public class SongListActivity extends AppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 99 ;
-    //String[]items;
 
     List<String> items;
-    ListView listView;
     ArrayList<File> arrayList1;
-    ArrayList<File> arrayList2;
+    ListView listView;
+
+
 
     Toolbar toolbar;
     ThemeDataBaseHelper themeDataBaseHelper;
@@ -103,7 +103,7 @@ public class SongListActivity extends AppCompatActivity {
 
         listView=findViewById(R.id.listView);
         arrayList1=new ArrayList<>();
-        arrayList2=new ArrayList<>();
+      
 
         runTimePermission();
         navigationView=findViewById (R.id.myNavigationViewId);
