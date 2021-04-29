@@ -1,6 +1,7 @@
 package com.example.mymusicplayer;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
@@ -21,6 +22,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -63,7 +66,7 @@ import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements Playable , AudioManager.OnAudioFocusChangeListener{
+public class MainActivity extends AppCompatActivity implements Playable {
     LinearLayout linearLayout;
     ListView listView;
     ArrayList<File> arrayList1;
@@ -91,10 +94,35 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
 
     NotificationManager notificationManager;
 
+    int audioFocusRequest;
+    AudioManager audioManager;
 
-    boolean isPlaying=false;
+    // Audio attributes instance to set the playback
+    // attributes for the media player instance
+    // these attributes specify what type of media is
+    // to be played and used to callback the audioFocusChangeListener
+    AudioAttributes playbackAttributes;
+    AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+                Log.e("focusChange","AUDIOFOCUS_GAIN");
+                onTrackPlay();
+               // mediaPlayer.start();
+            } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
+                Log.e("focusChange","AUDIOFOCUS_LOSS_TRANSIENT");
+               // mediaPlayer.pause();
+                onTrackPause();
+                //mediaPlayer.seekTo(0);
+            } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                Log.e("focusChange","AUDIOFOCUS_LOSS");
+                mediaPlayer.pause();
+                onTrackPause();
 
-    AudioManager am = null;
+               // mediaPlayer.release();
+            }
+        }
+    };
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -112,6 +140,8 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
         super.onDestroy();
     }
 
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -125,6 +155,26 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24);
+
+
+        // get the audio system service for
+        // the audioManger instance
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        // initiate the audio playback attributes
+        playbackAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build();
+        // set the playback attributes for the focus requester
+        AudioFocusRequest focusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(playbackAttributes)
+                .setAcceptsDelayedFocusGain(true)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build();
+        // request the audio focus and
+        // store it in the int variable
+         audioFocusRequest = audioManager.requestAudioFocus(focusRequest);
+
 
         // view finding
         linearLayout=findViewById(R.id.linearLayoutId);
@@ -141,6 +191,12 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
         playImageView=findViewById(R.id.playImageViewId);
         seekMusic=findViewById(R.id.seekBarId);
         visualizer=findViewById(R.id.blast);
+
+
+
+
+
+
 
 
         if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.O){
@@ -206,9 +262,14 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                String currentTime=createTime(mediaPlayer.getCurrentPosition());
-                txtSStart.setText(currentTime);
-                handler.postDelayed(this,delay);
+                try {
+                    String currentTime=createTime(mediaPlayer.getCurrentPosition());
+                    txtSStart.setText(currentTime);
+                    handler.postDelayed(this,delay);
+                }catch (Exception e){
+
+                }
+
             }
         },delay);
 
@@ -289,7 +350,12 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
             String action=intent.getExtras().getString("actionName");
             switch (action){
                 case CreateNotification.ACTION_PREVIOUS:
-                    onTrackPrevious();
+                    if (mediaPlayer!=null){
+                        onTrackPrevious();
+                    }else {
+                        Log.e("error","mediaplayer null");
+                    }
+
                     break;
                 case CreateNotification.ACTION_PLAY:
                     if (mediaPlayer.isPlaying()){
@@ -478,21 +544,27 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
 
     @Override
     public void onTrackPlay() {
-        Log.e("etr","play");
+        if (audioFocusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            Log.e("etr","play");
 //        CreateNotification.createNotification(MainActivity.this,tracks.get(position),
 //                R.drawable.ic_baseline_pause_24,position,mySongs.size()-1);
-        sName=mySongs.get(position).getName();
-        txtSName.setText(sName);
-        CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
-                R.drawable.pause_ic,position,mySongs.size()-1,mySongs);
+            sName=mySongs.get(position).getName();
+            txtSName.setText(sName);
+            CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
+                    R.drawable.pause_ic,position,mySongs.size()-1,mySongs);
 
-        playImageView.setImageResource(R.drawable.pause_ic);
-        mediaPlayer.start();
+            playImageView.setImageResource(R.drawable.pause_ic);
+            mediaPlayer.start();
+        }
+
+
+
 
     }
 
     @Override
     public void onTrackPause() {
+        if (audioFocusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
         Log.e("etr","pause");
         sName=mySongs.get(position).getName();
         txtSName.setText(sName);
@@ -501,10 +573,11 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
 
         playImageView.setImageResource(R.drawable.play_ic);
         mediaPlayer.pause();
-    }
+    }}
 
     @Override
     public void onTrackNext() {
+        if (audioFocusRequest == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
         mediaPlayer.stop();
         mediaPlayer.release();
         position=(position+1)%mySongs.size();
@@ -528,22 +601,6 @@ public class MainActivity extends AppCompatActivity implements Playable , AudioM
         txtSName.setText(sName);
         CreateNotification.createNotification(MainActivity.this,new Track(sName,sName,R.drawable.song_img),
                 R.drawable.pause_ic,position,mySongs.size()-1,mySongs);
-    }
+    }}
 
-
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT)
-        {
-            // Pause
-        }
-        else if(focusChange == AudioManager.AUDIOFOCUS_GAIN)
-        {
-            // Resume
-        }
-        else if(focusChange == AudioManager.AUDIOFOCUS_LOSS)
-        {
-            // Stop or pause depending on your need
-        }
-    }
 }

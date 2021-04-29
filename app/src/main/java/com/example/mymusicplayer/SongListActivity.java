@@ -103,7 +103,7 @@ public class SongListActivity extends AppCompatActivity {
 
         listView=findViewById(R.id.listView);
         arrayList1=new ArrayList<>();
-      
+
 
         runTimePermission();
         navigationView=findViewById (R.id.myNavigationViewId);
@@ -200,11 +200,13 @@ public class SongListActivity extends AppCompatActivity {
                         @Override
                         public void onPermissionRationaleShouldBeShown(List<PermissionRequest> list, PermissionToken permissionToken) {
                             permissionToken.continuePermissionRequest();
+
                         }
                     }).check();
 
 
     }
+
 
 
 
@@ -233,17 +235,14 @@ public class SongListActivity extends AppCompatActivity {
     void displaySong(){
 
         final ArrayList<File> mySongs=findSong(Environment.getExternalStorageDirectory());
-        //items=new String[mySongs.size()];
+
+
         items=new ArrayList<>();
 
         if (mySongs.size()>0){
             for (int i=0;i<mySongs.size();i++){
-                //////////////////////////////////////////
                 tracks=new ArrayList<>();
-                if (!mySongs.get(i).getName().startsWith(".")){
                     items.add(mySongs.get(i).getName().toString().replace(".mp3","").replace(".wav",""));
-                }
-                continue;
             }
         }
 
